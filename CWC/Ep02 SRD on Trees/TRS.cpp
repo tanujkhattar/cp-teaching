@@ -106,15 +106,13 @@ const int64_t INF = 1e18;
 inline int64_t min_op(int64_t x, int64_t y, int64_t min_val = -INF) {
   return (y >= min_val && y < x) ? y : x;
 }
-int64_t query_up(int x, int p, int64_t min_val) {
+inline int64_t query_up(int x, int p, int64_t min_val) {
   auto ans = INF;
   while (x != p) {
     int b = block[x];
     if (is_spcl[x] && level[head[par[x]]] >= level[p]) {
       auto it = block_vals[b].lower_bound(min_val - block_add[b]);
-      if (it != block_vals[b].end()){
-        ans = min(ans, *it + block_add[b]);
-      }
+      if (it != block_vals[b].end()) ans = min(ans, *it + block_add[b]);
       x = head[par[x]];
     } else {
       ans = min_op(ans, val[x] + block_add[b], min_val);
