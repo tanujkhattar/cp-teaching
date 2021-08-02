@@ -1,6 +1,7 @@
 // Author: Tanuj Khattar
 // Accepted soluion for https://www.codechef.com/problems/TRS
-// Uses Supernode trees explained in https://youtu.be/8VHWdNnP3h4
+// Uses alternate construction of Supernode trees explained in 
+// https://youtu.be/8VHWdNnP3h4
 #include <algorithm>
 #include <iostream>
 #include <set>
@@ -33,7 +34,7 @@ vector<int> g[N];
 // For LCA.
 int dp[LOGN + 1][N], st[N], en[N], T;
 // For Supernode Tree.
-int head[N], par[N], level[N], block[N];
+int head[N], par[N], level[N], block[N], sub[N];
 bool is_spcl[N];
 // For queries & updates.
 int64_t val[N], block_add[2 * N / SQRT], blen;
@@ -42,21 +43,23 @@ multiset<int64_t> block_vals[2 * N / SQRT];
 inline int dfs(int x, int p = 0) {
   par[x] = head[x] = dp[0][x] = p;
   for (int i = 1; i <= LOGN; i++) dp[i][x] = dp[i - 1][dp[i - 1][x]];
-  level[x] = level[p] + 1; st[x] = ++T;
-  bool seen_spcl = false, is_sqrt_node = (level[x] % SQRT) == 0;
+  level[x] = level[p] + 1; st[x] = ++T; sub[x] = 1;
+  bool seen_spcl = false;
   is_spcl[x] = !p;
   int ret = 0;
   for (auto y : g[x]) {
     if (y == p) continue;
     int w = dfs(y, x);
+    sub[x] += sub[y];
     if (!w) continue;
-    is_spcl[x] |= is_sqrt_node || (seen_spcl && is_spcl[w]);
+    is_spcl[x] |= (seen_spcl && is_spcl[w]);
     seen_spcl |= is_spcl[w];
     ret = w;
   }
+  if(sub[x] >= SQRT) sub[x] = 0, is_spcl[x] = true;
   if (is_spcl[x]) head[x] = x;
   en[x] = ++T;
-  return (is_spcl[x] || is_sqrt_node) ? x : ret;
+  return is_spcl[x] ? x : ret;
 }
 inline int f(int x) { return head[x] = (head[x] == x ? x : f(head[x])); }
 inline void build_supernode_tree(int n, int root = 1) {
